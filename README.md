@@ -7,4 +7,9 @@ go-levy is a golang port of a Stochastic Process Generation Algorithm introduced
 I decided to place it here after finding an interest in a specific metaheuristic (Cuckoo Search AKA obligate brood parasitism) as a form of Relevance Feedback in Information Retrieval.
 
 
+Grab it by typing:
+
+```go get github.com/jtejido/go-levy```
+
+
 P.S. the implementation needed to run it is in gl.go
