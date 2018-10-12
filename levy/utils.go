@@ -7,7 +7,7 @@ import (
     "fmt"
 )
 
-// Gamma Function via Lanczos approximation formula.
+// Gamma Function via Lanczos approximation formula. Depracated in favor of math.Gamma (Stirling approximation)
 func gamma(x float64) float64 {
 	return math.Exp(logGamma(x))
 }
@@ -22,28 +22,15 @@ func randNormal(m, s float64) float64 {
 	return rand.NormFloat64() * s + m
 }
 
-type interpolator interface {
-	Interpolate(float64) float64
-}
-
-type validator interface {
-	Validate(float64) error
-}
-
-type validate interface {
-	interpolator
-	validator
-}
-
-func Interpolate(vi validate, val float64) (float64, error) {
+func interpolate(l *Linear, val float64) (float64, error) {
 	var est float64
 
-	err := vi.Validate(val)
+	err := l.validate(val)
 	if err != nil {
 		return est, err
 	}
 
-	est = vi.Interpolate(val)
+	est = l.interpolate(val)
 	return est, nil
 }
 
@@ -56,7 +43,7 @@ func NewLinear() *Linear {
 	return li
 }
 
-func (li *Linear) Interpolate(val float64) float64 {
+func (li *Linear) interpolate(val float64) float64 {
 	var est float64
 
 	l, r := li.searchNearestNeighbours(val, 0, len(li.XY)-1)
@@ -70,7 +57,7 @@ func (li *Linear) Interpolate(val float64) float64 {
 	return est
 }
 
-func (li *Linear) Validate(val float64) error {
+func (li *Linear) validate(val float64) error {
 
 	if val < li.XY[0].X {
 		return fmt.Errorf("Out of bounds: %f less than %f", val, li.XY[0].X)

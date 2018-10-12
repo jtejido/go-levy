@@ -2,12 +2,12 @@ package levy
 
 import (
     "math"
+    "fmt"
 )
 
 // Fast, accurate algorithm for numerical simulation of Levy stable stochastic processes 
 // Mantegna, R, N. 1994
-type Levy struct {
-}
+type Levy struct {}
 
 func NewLevy() *Levy {
 	return new(Levy)
@@ -16,26 +16,26 @@ func NewLevy() *Levy {
 // Stochastic variable
 func (levy Levy) Vf(alpha float64) float64 {
 	var x, y float64
-    	x = randNormal(0, 1)
-    	y = randNormal(0, 1)
+	x = randNormal(0, 1)
+	y = randNormal(0, 1)
 
-    	x = x * levy.Sigmax(alpha)
+	x = x * levy.Sigmax(alpha)
 
-    	return x / math.Pow(math.Abs(y), 1.0 / alpha)
+	return x / math.Pow(math.Abs(y), 1.0 / alpha)
 }
 
 func (levy Levy) Sigmax(alpha float64) float64 {
-	numerator := gamma(alpha + 1.0) * math.Sin(math.Pi * alpha / 2.0)
-    	denominator := gamma((alpha + 1)/2.0) * alpha * math.Pow(2.0, (alpha - 1.0) / 2.0)
+	numerator := math.Gamma(alpha + 1.0) * math.Sin(math.Pi * alpha / 2.0)
+	denominator := math.Gamma((alpha + 1)/2.0) * alpha * math.Pow(2.0, (alpha - 1.0) / 2.0)
 
-    	return math.Pow(numerator / denominator, 1.0 / alpha)
+	return math.Pow(numerator / denominator, 1.0 / alpha)
 }
 
 func (levy Levy) K(alpha float64) float64 {
-    	k := alpha * gamma((alpha + 1.0)/(2.0 * alpha))/ gamma(1.0 / alpha)
-    	k *= math.Pow(alpha * gamma((alpha + 1.0)/2.0) / (gamma(alpha + 1.0) * math.Sin(math.Pi * alpha / 2.0)), 1.0 / alpha)
+	k := alpha * math.Gamma((alpha + 1.0)/(2.0 * alpha))/ math.Gamma(1.0 / alpha)
+	k *= math.Pow(alpha * math.Gamma((alpha + 1.0)/2.0) / (math.Gamma(alpha + 1.0) * math.Sin(math.Pi * alpha / 2.0)), 1.0 / alpha)
 
-    	return k
+	return k
 }
 
 func (levy Levy) C(alpha float64) float64 {
@@ -44,30 +44,42 @@ func (levy Levy) C(alpha float64) float64 {
 	li := NewLinear()
 	li.Fit(x, y)
 	
-	estimate, err := Interpolate(li, alpha)
+	estimate, err := interpolate(li, alpha)
 	
-    	if err != nil {
+    if err != nil {
 		panic(err)
 	}
 	
 	return estimate
 }
 
-func (levy Levy) Levy(alpha, gamma float64, n int) float64 {
-	
-	var v, w, z float64
-    	// The Levy random number is found by a weighted average of n independent random variables
-    	w = 0
-    	for i := 0; i <= n; i++ {
-        	v = levy.Vf(alpha)
+func (levy Levy) Levy(alpha, gamma float64, n int) (float64, error) {
+    var v, w, z float64
 
-        	for v < -10 {
-            		v = levy.Vf(alpha)
-		}
-        	w += v * ((levy.K(alpha) - 1.0) * math.Exp(-v / levy.C(alpha)) + 1.0)
-	}
-    	// The Levy random variable
-    	z = 1.0 / math.Pow(float64(n), 1.0 / alpha) * w * gamma
+    if gamma <= 0 {
+        return z, fmt.Errorf("gamma out of range %f", gamma) 
+    }
 
-    return z
+    if n < 0 {
+        return z, fmt.Errorf("iteration less than zero %f", n) 
+    }
+
+	if alpha >= 0.3 && alpha <= 1.99 {
+
+            w = 0
+            for i := 0; i <= n; i++ {
+                v = levy.Vf(alpha)
+
+                for v < -10 {
+                        v = levy.Vf(alpha)
+                }
+                    w += v * ((levy.K(alpha) - 1.0) * math.Exp(-v / levy.C(alpha)) + 1.0)
+            }
+            // The Levy random variable
+            z = 1.0 / math.Pow(float64(n), 1.0 / alpha) * w * gamma
+
+        return z, nil
+    }
+
+    return z, fmt.Errorf("alpha out of range %f", alpha)
 }

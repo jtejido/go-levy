@@ -11,9 +11,15 @@ func main() {
 	n := 1
 	l := levy.NewLevy()
 
-	fmt.Printf("This displays Table I of Mantegna's paper (except the function result) ....\n")
+	fmt.Printf("This displays Table I of Mantegna's paper....\n")
 	fmt.Printf("alpha     levy function     sigmax         K          C\n")
 	for _, alpha := range alphas {
-		fmt.Printf("%.5f    %.5f          %.5f     %.5f     %.5f\n", alpha, l.Levy(alpha, gamma, n), l.Sigmax(alpha), l.K(alpha), l.C(alpha))
+		z, err := l.Levy(alpha, gamma, n)
+		if err != nil {
+				fmt.Println(err)
+			} else {
+				fmt.Printf("%.5f    %.5f          %.5f     %.5f     %.5f\n", alpha, z, l.Sigmax(alpha), l.K(alpha), l.C(alpha))
+			}
+		
 	}
 }
