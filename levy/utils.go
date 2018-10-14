@@ -81,7 +81,7 @@ func (li *Linear) searchNearestNeighbours(val float64, l, r int) (int, int) {
 }
 
 type BaseInterpolation struct {
-	XY []CoordinatePair
+	XY []XYPair
 	X       []float64
 	Y       []float64
 }
@@ -97,21 +97,21 @@ func (b *BaseInterpolation) Fit(x, y []float64) error {
 	return nil
 }
 
-type CoordinatePair struct {
+type XYPair struct {
 	X float64
 	Y float64
 }
 
-func sortPairs(cp []CoordinatePair) {
+func sortPairs(cp []XYPair) {
 	sort.Slice(cp, func(i, j int) bool {
 		return cp[i].X < cp[j].X
 	})
 }
 
-func sliceToPairs(x, y []float64) []CoordinatePair {
-	cp := make([]CoordinatePair, len(x))
+func sliceToPairs(x, y []float64) []XYPair {
+	cp := make([]XYPair, len(x))
 	for i := 0; i < len(x); i++ {
-		cp = append(cp, CoordinatePair{X: x[i], Y: y[i]})
+		cp = append(cp, XYPair{X: x[i], Y: y[i]})
 	}
 	return cp
 }
